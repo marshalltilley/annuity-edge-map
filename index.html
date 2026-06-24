@@ -44,12 +44,13 @@
 #annuity-map-2025 .am-bar .r .vv{font-variant-numeric:tabular-nums;color:var(--am-mut);flex:none}
 #annuity-map-2025 .am-bar .track{height:7px;background:var(--am-noval);border-radius:3px;overflow:hidden}
 #annuity-map-2025 .am-bar .fill{height:100%;background:var(--am-gold);border-radius:3px}
-/* national view */
-#annuity-map-2025 .am-nat{display:none}
-#annuity-map-2025[data-view="national"] .am-grid{display:none}
-#annuity-map-2025[data-view="national"] .am-nat{display:block}
-#annuity-map-2025 .am-nat .nathd{font-size:13px;color:var(--am-mut);margin:0 0 10px}
-#annuity-map-2025 .am-nat .natgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:6px 26px}
+/* ranked-list views (state rankings + national carriers) */
+#annuity-map-2025 .am-list{display:none}
+#annuity-map-2025[data-view="national"] .am-grid,#annuity-map-2025[data-view="rankings"] .am-grid{display:none}
+#annuity-map-2025[data-view="national"] #am-nat{display:block}
+#annuity-map-2025[data-view="rankings"] #am-rank{display:block}
+#annuity-map-2025 .am-list .nathd{font-size:13px;color:var(--am-mut);margin:0 0 10px}
+#annuity-map-2025 .am-list .natgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:6px 26px}
 #annuity-map-2025 .am-natrow{display:grid;grid-template-columns:26px 1fr auto;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid var(--am-line)}
 #annuity-map-2025 .am-natrow .rk{font-size:12px;font-weight:700;color:var(--am-navy);text-align:right;font-variant-numeric:tabular-nums}
 #annuity-map-2025 .am-natrow .nm{font-size:13px;color:var(--am-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -61,7 +62,7 @@
 #annuity-map-2025 .am-tip{position:absolute;pointer-events:none;background:var(--am-ink);color:#fff;padding:6px 9px;border-radius:6px;font-size:12px;opacity:0;transform:translate(-50%,-130%);white-space:nowrap;z-index:5;transition:opacity .1s}
 #annuity-map-2025 .am-tip b{font-weight:700;color:var(--am-gold)}
 #annuity-map-2025 .am-foot{font-size:10.5px;color:var(--am-mut);margin-top:12px;border-top:1px solid var(--am-line);padding-top:8px}
-@media(max-width:760px){#annuity-map-2025 .am-grid{grid-template-columns:1fr}#annuity-map-2025 .am-nat .natgrid{grid-template-columns:1fr}}
+@media(max-width:760px){#annuity-map-2025 .am-grid{grid-template-columns:1fr}#annuity-map-2025 .am-list .natgrid{grid-template-columns:1fr}}
 </style>
 
 <div class="am-head">
@@ -72,6 +73,7 @@
   <div class="am-controls">
     <div class="am-toggle" id="am-view" role="group" aria-label="View">
       <button data-v="state" class="on">State Map</button>
+      <button data-v="rankings">State Rankings</button>
       <button data-v="national">National Top 25</button>
     </div>
     <div class="am-toggle" id="am-metric" role="group" aria-label="Product type">
@@ -97,7 +99,8 @@
   <div class="am-panel" id="am-panel"></div>
 </div>
 
-<div class="am-nat" id="am-nat"></div>
+<div class="am-list" id="am-rank"></div>
+<div class="am-list" id="am-nat"></div>
 
 <div class="am-foot" id="am-foot"></div>
 </div>
@@ -176,22 +179,31 @@
     TERR.forEach(function(t){var d=DB.states[t];if(!d)return;var b=document.createElement("button");
       b.className="chip"+(state.sel===t?" sel":"");b.innerHTML=t+" &middot; "+fmt(d[state.metric]);
       b.onclick=function(){state.sel=t;render();};c.appendChild(b);});}
-  function national(){var list=NATIONAL[state.metric]||[];var max=list.length?list[0][1]:0;
-    var tot={total:DB.meta.grandTotal,fixed:DB.meta.fixedTotal,indexed:DB.meta.indexedTotal}[state.metric];
-    var h='<p class="nathd">Top '+list.length+' carriers nationwide by '+METLABEL[state.metric].toLowerCase()+
-      ' annuity direct premium &middot; total market '+fmt(tot)+'</p><div class="natgrid">';
-    list.forEach(function(row,i){var w=max>0?Math.max(2,row[1]/max*100):0;
+  function stName(c){return (GEO[c]&&GEO[c].name)||{PR:"Puerto Rico",GU:"Guam",AS:"American Samoa",MP:"N. Mariana Is."}[c]||c;}
+  function metricTotal(){return {total:DB.meta.grandTotal,fixed:DB.meta.fixedTotal,indexed:DB.meta.indexedTotal}[state.metric];}
+  function renderList(target,header,rows,tot){var max=rows.length?rows[0][1]:0;
+    var h='<p class="nathd">'+header+'</p><div class="natgrid">';
+    rows.forEach(function(row,i){var w=max>0?Math.max(2,row[1]/max*100):0;
       var share=tot>0?(row[1]/tot*100):0;
       h+='<div class="am-natrow'+(i<3?' top3':'')+'"><div class="rk">'+(i+1)+'</div>'+
         '<div><div class="nm">'+row[0]+'</div><div class="barwrap"><div class="fl" style="width:'+w+'%"></div></div></div>'+
         '<div class="vv"><b>'+fmt(row[1])+'</b>'+share.toFixed(1)+'%</div></div>';});
-    h+='</div>';root.querySelector("#am-nat").innerHTML=h;}
+    h+='</div>';root.querySelector(target).innerHTML=h;}
+  function national(){var list=NATIONAL[state.metric]||[];var tot=metricTotal();
+    renderList("#am-nat","Top "+list.length+" carriers nationwide by "+METLABEL[state.metric].toLowerCase()+
+      " annuity direct premium &middot; total market "+fmt(tot)+" (share of U.S.)",list,tot);}
+  function rankings(){var tot=metricTotal();
+    var rows=Object.keys(DB.states).map(function(c){return [stName(c),DB.states[c][state.metric]];})
+      .filter(function(r){return r[1]>0;}).sort(function(a,b){return b[1]-a[1];});
+    renderList("#am-rank","All "+rows.length+" states &amp; territories by "+METLABEL[state.metric].toLowerCase()+
+      " annuity premium &middot; total "+fmt(tot)+" (share of U.S.)",rows,tot);}
   function head(){root.querySelector("#am-subline").textContent=
       "Direct premium, $"+(DB.meta.grandTotal*1000/1e9).toFixed(0)+"B across "+DB.meta.nCarriers+" carriers \u00b7 Fixed $"+(DB.meta.fixedTotal*1000/1e9).toFixed(0)+"B \u00b7 Indexed $"+(DB.meta.indexedTotal*1000/1e9).toFixed(0)+"B";
-    root.querySelector("#am-foot").innerHTML="Source: 2025 State-Specific Data by Carrier (S&amp;P Global Market Intelligence). Values are direct premium in U.S. dollars. State view: hover for totals, click for carrier detail. National view: accurate carrier totals across all states. Carrier names are display labels; see internal name map.";}
+    root.querySelector("#am-foot").innerHTML="Source: 2025 State-Specific Data by Carrier (S&amp;P Global Market Intelligence). Values are direct premium in U.S. dollars; all three views are filterable by product type. State Map: hover for totals, click a state for carrier detail. State Rankings: jurisdictions by premium and U.S. share. National Top 25: carrier totals across all states. Carrier names are display labels; see internal name map.";}
   function render(){
     root.setAttribute("data-view",state.view);
     if(state.view==="state"){paint();panel();terrChips();}
+    else if(state.view==="rankings"){rankings();}
     else{national();}
     root.querySelectorAll("#am-metric button").forEach(function(b){b.classList.toggle("on",b.getAttribute("data-m")===state.metric);});
     root.querySelectorAll("#am-view button").forEach(function(b){b.classList.toggle("on",b.getAttribute("data-v")===state.view);});}
