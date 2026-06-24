@@ -50,8 +50,8 @@
 #annuity-map-2025[data-view="national"] #am-nat{display:block}
 #annuity-map-2025[data-view="rankings"] #am-rank{display:block}
 #annuity-map-2025 .am-list .nathd{font-size:13px;color:var(--am-mut);margin:0 0 10px}
-#annuity-map-2025 .am-list .natgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:6px 26px}
-#annuity-map-2025 .am-natrow{display:grid;grid-template-columns:26px 1fr auto;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid var(--am-line)}
+#annuity-map-2025 .am-list .natgrid{column-width:320px;column-gap:26px}
+#annuity-map-2025 .am-natrow{display:grid;grid-template-columns:26px 1fr auto;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid var(--am-line);break-inside:avoid;-webkit-column-break-inside:avoid}
 #annuity-map-2025 .am-natrow .rk{font-size:12px;font-weight:700;color:var(--am-navy);text-align:right;font-variant-numeric:tabular-nums}
 #annuity-map-2025 .am-natrow .nm{font-size:13px;color:var(--am-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #annuity-map-2025 .am-natrow .barwrap{margin-top:3px;height:6px;background:var(--am-noval);border-radius:3px;overflow:hidden}
@@ -62,7 +62,7 @@
 #annuity-map-2025 .am-tip{position:absolute;pointer-events:none;background:var(--am-ink);color:#fff;padding:6px 9px;border-radius:6px;font-size:12px;opacity:0;transform:translate(-50%,-130%);white-space:nowrap;z-index:5;transition:opacity .1s}
 #annuity-map-2025 .am-tip b{font-weight:700;color:var(--am-gold)}
 #annuity-map-2025 .am-foot{font-size:10.5px;color:var(--am-mut);margin-top:12px;border-top:1px solid var(--am-line);padding-top:8px}
-@media(max-width:760px){#annuity-map-2025 .am-grid{grid-template-columns:1fr}#annuity-map-2025 .am-list .natgrid{grid-template-columns:1fr}}
+@media(max-width:760px){#annuity-map-2025 .am-grid{grid-template-columns:1fr}#annuity-map-2025 .am-list .natgrid{column-width:auto;column-count:1}}
 </style>
 
 <div class="am-head">
