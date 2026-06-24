@@ -1,0 +1,9 @@
+# Public repo: publish only the generated static widget.
+# Keep the internal build pipeline, source data, and name workbook local.
+build.py
+build/
+*.xls
+*.xlsx
+.claude/
+.venv/
+__pycache__/
